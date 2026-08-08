@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#F7F5EF"/>
+  <g fill="none" stroke="#B33A2E" stroke-width="3">
+    <circle cx="110" cy="210" r="55"/>
+    <circle cx="290" cy="210" r="55"/>
+    <path d="M110,210 L190,120 L290,210 M190,120 L160,210 M190,120 L230,120 L290,210 M230,120 L215,90 L245,90"/>
+  </g>
+  <text x="200" y="270" font-family="monospace" font-size="13" letter-spacing="2" fill="#8A8578" text-anchor="middle">PHOTO PENDING — ROAD DETAIL</text>
+</svg>
