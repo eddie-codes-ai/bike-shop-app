@@ -1,8 +1,21 @@
+import { Suspense } from 'react';
 import { getBikes } from '@/lib/data/bikes';
 import { BikeGrid } from '@/components/BikeGrid';
+import { CatalogFilters } from '@/components/CatalogFilters';
+import type { Category, Condition } from '@/lib/types';
 
-export default async function CatalogPage() {
-  const bikes = await getBikes();
+export default async function CatalogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string; condition?: string; sort?: string }>;
+}) {
+  const params = await searchParams;
+
+  const bikes = await getBikes({
+    category: params.category as Category | undefined,
+    condition: params.condition as Condition | undefined,
+    sort: params.sort as 'price-asc' | 'price-desc' | 'newest' | undefined,
+  });
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10">
@@ -19,7 +32,13 @@ export default async function CatalogPage() {
         </p>
       </section>
 
-      <section className="mt-10">
+      <section className="mt-8">
+        <Suspense fallback={null}>
+          <CatalogFilters />
+        </Suspense>
+      </section>
+
+      <section className="mt-8">
         <BikeGrid bikes={bikes} />
       </section>
     </div>
