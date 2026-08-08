@@ -5,6 +5,7 @@ import { CATEGORY_LABELS } from '@/lib/types';
 import { ImageGallery } from '@/components/ImageGallery';
 import { VariantPicker } from '@/components/VariantPicker';
 import { SpecSheet } from '@/components/SpecSheet';
+import { GoogleReviewsSection } from '@/components/GoogleReviewsSection';
 
 // Pre-renders one static page per bike at build time, using every ID
 // currently in the mock data. Once Stage 3 connects the real database,
@@ -58,6 +59,10 @@ export default async function BikeDetailPage({
           <p className="mt-1">Serviced and checked before it leaves the shop</p>
           <p className="mt-1">No account needed to buy — checkout as a guest</p>
         </div>
+      </div>
+
+      <div className="mt-12">
+        <GoogleReviewsSection />
       </div>
     </div>
   );
