@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
@@ -20,12 +21,19 @@ export default async function AdminDashboardPage() {
   return (
     <div className="min-h-screen bg-paper">
       <header className="border-b border-line px-6 py-4 flex items-center justify-between">
-        <p className="font-bold text-frame">
-          RIDGEBACK
-          <span className="ml-2 font-normal text-xs tracking-[0.2em] text-graphite align-middle">
-            ADMIN
-          </span>
-        </p>
+        <div className="flex items-center gap-6">
+          <p className="font-bold text-frame">
+            RIDGEBACK
+            <span className="ml-2 font-normal text-xs tracking-[0.2em] text-graphite align-middle">
+              ADMIN
+            </span>
+          </p>
+          <nav className="flex items-center gap-4 text-xs tracking-wide text-graphite">
+            <Link href="/admin/bikes" className="hover:text-murram transition-colors">
+              BIKES
+            </Link>
+          </nav>
+        </div>
         <div className="flex items-center gap-4">
           <span className="text-xs text-graphite">
             {session.user.name} &middot; {session.user.role}
