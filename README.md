@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+bike-shop-app/README.md
+# 🚲 Bike Shop App
+
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06b6d4?logo=tailwindcss&logoColor=white)
+
+A full-stack storefront for a bike shop — built to take a visitor from "just browsing" to "checking spec sheets" without ever feeling like a spreadsheet of inventory. Every screen, from the catalog grid to the reviews section, is designed around how people actually shop for something they'll own for years.
+
+## Highlights
+
+- **Filterable catalog** — narrow the grid by category, condition, and sort order without a full page reload
+- **Per-bike detail pages** — image gallery, a size/color variant picker, and a full spec sheet for every model
+- **Google Reviews, wired for reality** — pulls live reviews, but degrades gracefully if the API's ever unavailable instead of breaking the page
+- **Built on the App Router** — server components where they help load time, client interactivity where the UX needs it
+
+## Tech Stack
+
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19 |
+| Styling | Tailwind CSS 4 |
+| Language | TypeScript |
+
+## Project Structure
+
+bike-shop-app/
+├── app/                    # routes (App Router)
+├── components/
+│   ├── BikeCard.tsx
+│   ├── BikeGrid.tsx
+│   ├── CatalogFilters.tsx
+│   ├── GoogleReviewsSection.tsx
+│   ├── ImageGallery.tsx
+│   ├── SiteHeader.tsx
+│   ├── SiteFooter.tsx
+│   ├── SpecSheet.tsx
+│   └── VariantPicker.tsx
+├── lib/                    # shared utilities
+└── public/                 # static assets
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
