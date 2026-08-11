@@ -1,0 +1,255 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // pooled connection (port 6543)  -  used at runtime
+  directUrl = env("DIRECT_URL")   // direct connection (port 5432)  -  used for migrations only
+}
+
+// ------------------------------------------------------------
+// Enums
+// ------------------------------------------------------------
+
+enum Role {
+  OWNER
+  STAFF
+  CUSTOMER
+}
+
+enum Category {
+  ROAD
+  MOUNTAIN
+  HYBRID
+  E_BIKE
+  KIDS
+}
+
+enum Condition {
+  NEW
+  USED
+}
+
+enum FulfillmentType {
+  SHIP
+  PICKUP
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  READY_FOR_PICKUP
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  MPESA
+  CARD
+  CASH_ON_DELIVERY
+}
+
+// ------------------------------------------------------------
+// Users
+// ------------------------------------------------------------
+// v1: only OWNER/STAFF ever get a User row (created directly by an admin,
+// never via self-serve signup). CUSTOMER stays in the Role enum for a
+// possible future v2 account system, but nothing in this codebase should
+// create a User with role CUSTOMER today.
+//
+// NOTE: `role` has no @default on purpose  -  every User.create() call must
+// pass it explicitly. Don't add a default back; it's a safety rail against
+// an admin account silently landing with the wrong permissions.
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  name          String
+  role          Role
+  phone         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime? // soft delete  -  null = active. Never hard-delete a user with order history.
+
+  addresses Address[]
+  orders    Order[]
+
+  // Better Auth
+  sessions Session[]
+  accounts Account[]
+
+  @@index([deletedAt])
+}
+
+// ------------------------------------------------------------
+// Better Auth
+// ------------------------------------------------------------
+// Standard Better Auth Prisma adapter shape. Session = an active login.
+// Account = one credential or OAuth link per User (email/password shows up
+// here with providerId "credential" and the hashed password in `password`,
+// NOT on the User model itself). Verification = short-lived tokens for
+// email verification / password reset flows.
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+model Address {
+  id         String  @id @default(cuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  line1      String
+  line2      String?
+  city       String
+  county     String
+  postalCode String?
+  isDefault  Boolean @default(false)
+
+  orders Order[]
+
+  @@index([userId])
+}
+
+// ------------------------------------------------------------
+// Products
+// ------------------------------------------------------------
+
+model Bike {
+  id          String   @id @default(cuid())
+  name        String
+  brand       String
+  category    Category
+  condition   Condition
+  description String
+  specs       Json? // frame material, gears, brake type, wheel size, etc.
+  basePrice   Decimal  @db.Decimal(10, 2)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  images   BikeImage[]
+  variants Variant[]
+
+  @@index([category])
+  @@index([active])
+}
+
+model BikeImage {
+  id       String  @id @default(cuid())
+  bikeId   String
+  bike     Bike    @relation(fields: [bikeId], references: [id], onDelete: Cascade)
+  url      String // Supabase Storage public URL
+  altText  String?
+  position Int     @default(0) // display order
+
+  @@index([bikeId])
+}
+
+model Variant {
+  id              String  @id @default(cuid())
+  bikeId          String
+  bike            Bike    @relation(fields: [bikeId], references: [id], onDelete: Cascade)
+  size            String // e.g. "S", "M", "L", "26 inch"
+  color           String
+  sku             String  @unique
+  priceAdjustment Decimal @default(0) @db.Decimal(10, 2) // added/subtracted from basePrice
+  stockQuantity   Int     @default(0)
+
+  orderItems OrderItem[]
+
+  @@unique([bikeId, size, color]) // prevents duplicate size/color combos on the same bike
+  @@index([bikeId])
+}
+
+// ------------------------------------------------------------
+// Orders
+// ------------------------------------------------------------
+// customerId is optional  -  supports guest checkout.
+// Guests fill in guestName/guestEmail/guestPhone/guestAddressLine instead of
+// having an Address record. App logic must enforce: EITHER customerId is set
+// OR the guest fields are set (Prisma can't express this constraint natively).
+
+model Order {
+  id               String          @id @default(cuid())
+  customerId       String?
+  customer         User?           @relation(fields: [customerId], references: [id])
+  guestName        String?
+  guestEmail       String?
+  guestPhone       String?
+  guestAddressLine String? // free-text delivery address for guests without an Address record
+  status           OrderStatus     @default(PENDING)
+  fulfillmentType  FulfillmentType
+  addressId        String? // null if pickup, or if guest used guestAddressLine
+  address          Address?        @relation(fields: [addressId], references: [id])
+  total            Decimal         @db.Decimal(10, 2)
+  paymentRef       String? // Pesapal/Flutterwave transaction reference
+  paymentMethod    PaymentMethod?
+  trackingToken    String?         @unique // lets guests look up order status without an account
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  items OrderItem[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([guestEmail])
+}
+
+model OrderItem {
+  id              String  @id @default(cuid())
+  orderId         String
+  order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId       String
+  variant         Variant @relation(fields: [variantId], references: [id])
+  quantity        Int
+  priceAtPurchase Decimal @db.Decimal(10, 2) // snapshot price, protects against later price changes
+
+  @@index([orderId])
+}
+
