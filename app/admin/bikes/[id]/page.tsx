@@ -12,7 +12,7 @@ export default async function EditBikePage({
 
   const bike = await prisma.bike.findUnique({
     where: { id },
-    include: { variants: true },
+    include: { variants: true, images: true },
   });
 
   if (!bike) notFound();
@@ -31,6 +31,7 @@ export default async function EditBikePage({
         <h1 className="text-xl font-bold text-frame mb-6">Edit {bike.name}</h1>
         <EditBikeForm
           bikeId={bike.id}
+          images={bike.images}
           initialValues={{
             name: bike.name,
             brand: bike.brand,

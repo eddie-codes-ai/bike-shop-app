@@ -4,13 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BikeForm, type BikeFormValues } from "../BikeForm";
 import { updateBike, deleteBike } from "../actions";
+import { ImageManager } from "./ImageManager";
 
 export function EditBikeForm({
   bikeId,
   initialValues,
+  images,
 }: {
   bikeId: string;
   initialValues: Partial<BikeFormValues>;
+  images: { id: string; url: string; altText: string | null; position: number }[];
 }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
@@ -34,6 +37,10 @@ export function EditBikeForm({
 
   return (
     <div>
+      <div className="mb-10 pb-8 border-b border-line">
+        <ImageManager bikeId={bikeId} images={images} />
+      </div>
+
       <BikeForm
         initialValues={initialValues}
         submitLabel="SAVE CHANGES"
